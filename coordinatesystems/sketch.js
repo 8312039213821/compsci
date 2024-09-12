@@ -2,7 +2,6 @@
 // Sami
 // sep  11, 2024
 //looking at how coordinates work in java
-// - describe what you did to take this project "above and beyond"
 
 canvasWidth = 500
 canvasHeight = 400
