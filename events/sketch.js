@@ -1,7 +1,7 @@
 // events
 // Sami
 // sep  12, 2024
-//
+//seeing how events work
 // - describe what you did to take this project "above and beyond"
 
 
