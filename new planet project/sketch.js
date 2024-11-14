@@ -3,18 +3,31 @@ let sunR; // Sun radius
 
 function setup() {
   createCanvas(windowWidth, windowHeight);
-  sunR = width / 8; // Sun radius (adjusted for size)
+  sunR = (width / 8) * 3; // Sun radius remains the same
 }
 
 function draw() {
   background(0); // Black background for space
 
-  // Draw the sun
+  // Draw the sun (base layer)
   fill(255, 255, 0);
   circle(width / 2, height / 2, sunR);
 
-  // Loop through all planets in the array
-  for (let planet of planets) {
+  // Separate planets into two groups based on direction
+  let rightToLeftPlanets = planets.filter((planet) => planet.direction < 0);
+  let leftToRightPlanets = planets.filter((planet) => planet.direction > 0);
+
+  // Draw planets moving right to left (behind the sun)
+  for (let planet of rightToLeftPlanets) {
+    planet.action();
+  }
+
+  // Draw the sun again to overlay planets moving right to left
+  fill(255, 255, 0);
+  circle(width / 2, height / 2, sunR);
+
+  // Draw planets moving left to right (in front of the sun)
+  for (let planet of leftToRightPlanets) {
     planet.action();
   }
 }
@@ -35,12 +48,12 @@ class Planet {
   constructor(x, c, xSpeed) {
     this.x = x; // Planet's x position
     this.y = height / 2; // Planet's y position (fixed in the center)
-    this.r = sunR / 10; // Smaller radius of the planet
+    this.r = (sunR / 10) * 1.5; // Half the size of the current radius
     this.c = c; // Color of the planet
     this.direction = xSpeed; // Direction of movement
     this.xSpeed = xSpeed; // Speed of movement
     this.moons = []; // Array to hold moons of the planet
-    this.orbitRadius = sunR + random(50, 150); // Orbit radius for the planet
+    this.orbitRadius = (sunR + random(30, 60)) * 1.5; // Smaller orbit radius to fit the screen
   }
 
   // Method to move the planet on the x-axis
@@ -57,16 +70,6 @@ class Planet {
 
   // Method to display the planet
   display() {
-    let sunLeftEdge = width / 2 - sunR / 2; // Left edge of the sun
-    let sunRightEdge = width / 2 + sunR / 2; // Right edge of the sun
-
-    // Check if the planet is completely behind the sun
-    if (this.x - this.r > sunLeftEdge && this.x + this.r < sunRightEdge) {
-      // The planet is behind the sun, do not draw it
-      return;
-    }
-
-    // If part of the planet is visible, draw it
     fill(this.c);
     circle(this.x, this.y, this.r);
 
@@ -78,7 +81,7 @@ class Planet {
 
   // Add a moon to the planet
   createMoon() {
-    let moon = new Moon(this, random(20, 50), random(1, 3)); // Attach moon to this planet
+    let moon = new Moon(this, random(20, 50) * 1.5, random(1, 3)); // Adjust moon orbit radius
     this.moons.push(moon); // Add the new moon to the planet's moons array
   }
 
@@ -94,12 +97,12 @@ class Planet {
 
   // Increase orbit radius
   increaseOrbit() {
-    this.orbitRadius += 5;
+    this.orbitRadius += 3; // Adjust increment for a smaller orbit
   }
 
   // Decrease orbit radius (but not too small)
   decreaseOrbit() {
-    if (this.orbitRadius > 50) this.orbitRadius -= 5;
+    if (this.orbitRadius > 20) this.orbitRadius -= 3; // Adjust minimum orbit radius to fit screen
   }
 
   // Change the planet's color
@@ -115,8 +118,9 @@ class Moon {
     this.orbitRadius = orbitRadius; // Distance from the planet
     this.speed = speed; // Speed of the moon's orbit
     this.offset = random(-this.orbitRadius, this.orbitRadius); // Random offset for horizontal oscillation
-    this.r = planet.r / 2; // Radius of the moon
+    this.r = (planet.r / 3); // Moons are 1/3 the size of the planets
     this.c = [random(100, 200), random(100, 200), random(100, 200)]; // Greyscale color
+    this.exploded = false; // Tracks if the moon has exploded
   }
 
   // Move the moon in its orbit (horizontal only)
@@ -127,13 +131,32 @@ class Moon {
     }
   }
 
+  // Check for explosion
+  explode() {
+    if (!this.exploded && random(1) < 0.001) { // 0.1% chance of explosion
+      this.exploded = true;
+
+      // Halve the radius of this moon
+      this.r /= 2;
+
+      // Create a new moon with the same halved radius
+      let newMoon = new Moon(this.planet, this.orbitRadius, -this.speed); // Opposite direction
+      newMoon.r = this.r; // Set the same halved radius
+
+      // Add the new moon to the planet
+      this.planet.moons.push(newMoon);
+    }
+  }
+
   // Display the moon
   display() {
     this.move(); // Update position
+    this.explode(); // Check for explosion
+
     let x = this.planet.x + this.offset; // X position relative to planet
     let y = this.planet.y; // Y position remains fixed relative to planet
 
-    // Draw the moon only if the planet is not behind the sun
+    // Draw the moon
     fill(this.c);
     circle(x, y, this.r);
   }
