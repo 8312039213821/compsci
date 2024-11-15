@@ -53,7 +53,7 @@ class Planet {
     this.direction = xSpeed; // Direction of movement
     this.xSpeed = xSpeed; // Speed of movement
     this.moons = []; // Array to hold moons of the planet
-    this.orbitRadius = (sunR + random(30, 60)) * 1.5; // Smaller orbit radius to fit the screen
+    this.orbitRadius = (sunR + random(30, 60)); // Smaller orbit radius to fit the screen
   }
 
   // Method to move the planet on the x-axis
